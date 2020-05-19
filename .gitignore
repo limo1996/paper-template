@@ -4,3 +4,4 @@
 *.out
 *.fls
 tags
+*.gz

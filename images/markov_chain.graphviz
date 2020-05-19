@@ -1,0 +1,193 @@
+digraph G {
+  rankdir=HR;
+  size="10,12!";
+  node [ shape = doublecircle, fontsize=70 ]; module module_terminator;
+  node [ shape = circle, nodesep=1.5, ranksep=1.5, fontsize=70];
+  edge [ fontsize=70 ]
+
+  /*{rank = same; module; "iir"; "stencil"; "field";
+  "multi_stage"; }
+  {rank = same; "stage"; "do_method";
+  "var"; }
+  {rank=same; "module_terminator"; "_iir_end";
+  "_multi_stage_end"}*/
+
+  subgraph start {
+    rank=same;
+
+    "module" -> "iir" [ label = "1.000" ];
+    "iir" -> "stencil" [ label = "1.000" ];
+    "stencil" -> "field" [ label = "0.776" ];
+    "stencil" -> "multi_stage" [ label = "0.224" ];
+    "multi_stage" -> "stage" [ label = "1.000" ];
+    "stage" -> "do_method" [ label = "0.286" ];
+    "stage" -> "var" [ label = "0.714" ];
+    "var" -> "do_method" [ label = "0.205" ];
+    "var" -> "var" [ label = "0.795" ];
+  }
+  subgraph details {
+    edge[style="invisible",dir="none"];
+    "stencil" -> "field_access" -> "constant";
+  }
+
+  //subgraph end {
+  //  rank=same;
+
+    "_do_method_end" -> "_stage_end" [ label = "1.000" ];
+    "_iir_end" -> "module_terminator" [ label = "1.000" ];
+    "_multi_stage_end" -> "_stencil_end" [ label = "1.000" ];
+    "_stage_end" -> "_multi_stage_end" [ label = "1.000" ];
+    "_stencil_end" -> "_iir_end" [ label = "1.000" ];
+  //}
+
+  subgraph core {
+    rankdir="TD";
+    color=lightgrey;
+    label="DoMethod body";
+
+    "loop.if" -> "constant" [ label = "0.182" ];
+    "loop.if" -> "field_access" [ label = "0.091" ];
+    "loop.if" -> "get_value" [ label = "0.091" ];
+    "loop.if" -> "write" [ label = "0.636" ];
+
+    "loop.terminator" -> "loop.terminator" [ label = "0.143" ];
+    "loop.terminator" -> "cmpf" [ label = "0.071" ];
+    "loop.terminator" -> "constant" [ label = "0.214" ];
+    "loop.terminator" -> "_do_method_end" [ label = "0.143" ];
+    "loop.terminator" -> "get_value" [ label = "0.143" ];
+    "loop.terminator" -> "var_access" [ label = "0.143" ];
+    "loop.terminator" -> "write" [ label = "0.143" ];
+
+    "addf" -> "constant" [ label = "0.068" ];
+    "addf" -> "divf" [ label = "0.023" ];
+    "addf" -> "mulf" [ label = "0.441" ];
+    "addf" -> "field_access" [ label = "0.086" ];
+    "addf" -> "get_value" [ label = "0.077" ];
+    "addf" -> "sqrtf" [ label = "0.023" ];
+    "addf" -> "var_access" [ label = "0.227" ];
+    "addf" -> "write" [ label = "0.055" ];
+
+    "cmpf" -> "loop.if" [ label = "0.100" ];
+    "cmpf" -> "select" [ label = "0.875" ];
+    "cmpf" -> "field_access" [ label = "0.025" ];
+
+    "constant" -> "addf" [ label = "0.010" ];
+    "constant" -> "cmpf" [ label = "0.055" ];
+    "constant" -> "constant" [ label = "0.126" ];
+    "constant" -> "divf" [ label = "0.111" ];
+    "constant" -> "mulf" [ label = "0.121" ];
+    "constant" -> "sitofp" [ label = "0.050" ];
+    "constant" -> "subf" [ label = "0.136" ];
+    "constant" -> "field_access" [ label = "0.196" ];
+    "constant" -> "get_value" [ label = "0.156" ];
+    "constant" -> "var_access" [ label = "0.010" ];
+    "constant" -> "write" [ label = "0.030" ];
+
+    "divf" -> "addf" [ label = "0.020" ];
+    "divf" -> "constant" [ label = "0.061" ];
+    "divf" -> "mulf" [ label = "0.071" ];
+    "divf" -> "subf" [ label = "0.040" ];
+    "divf" -> "exp" [ label = "0.020" ];
+    "divf" -> "fabs" [ label = "0.040" ];
+    "divf" -> "field_access" [ label = "0.040" ];
+    "divf" -> "pow" [ label = "0.020" ];
+    "divf" -> "var_access" [ label = "0.566" ];
+    "divf" -> "write" [ label = "0.121" ];
+
+    "mulf" -> "addf" [ label = "0.110" ];
+    "mulf" -> "cmpf" [ label = "0.033" ];
+    "mulf" -> "constant" [ label = "0.043" ];
+    "mulf" -> "divf" [ label = "0.016" ];
+    "mulf" -> "mulf" [ label = "0.064" ];
+    "mulf" -> "subf" [ label = "0.143" ];
+    "mulf" -> "field_access" [ label = "0.041" ];
+    "mulf" -> "get_value" [ label = "0.078" ];
+    "mulf" -> "var_access" [ label = "0.231" ];
+    "mulf" -> "write" [ label = "0.242" ];
+
+    "select" -> "cmpf" [ label = "0.167" ];
+    "select" -> "mulf" [ label = "0.056" ];
+    "select" -> "select" [ label = "0.028" ];
+    "select" -> "subf" [ label = "0.056" ];
+    "select" -> "field_access" [ label = "0.028" ];
+    "select" -> "get_value" [ label = "0.014" ];
+    "select" -> "var_access" [ label = "0.417" ];
+    "select" -> "write" [ label = "0.236" ];
+
+    "sitofp" -> "cmpf" [ label = "0.200" ];
+    "sitofp" -> "constant" [ label = "0.100" ];
+    "sitofp" -> "mulf" [ label = "0.200" ];
+    "sitofp" -> "field_access" [ label = "0.100" ];
+    "sitofp" -> "get_value" [ label = "0.100" ];
+    "sitofp" -> "write" [ label = "0.300" ];
+
+    "subf" -> "addf" [ label = "0.003" ];
+    "subf" -> "constant" [ label = "0.020" ];
+    "subf" -> "divf" [ label = "0.092" ];
+    "subf" -> "mulf" [ label = "0.068" ];
+    "subf" -> "fabs" [ label = "0.007" ];
+    "subf" -> "field_access" [ label = "0.092" ];
+    "subf" -> "get_value" [ label = "0.129" ];
+    "subf" -> "var_access" [ label = "0.425" ];
+    "subf" -> "write" [ label = "0.163" ];
+
+    "do_method" -> "constant" [ label = "0.252" ];
+    "do_method" -> "field_access" [ label = "0.748" ];
+
+    "exp" -> "mulf" [ label = "1.000" ];
+
+    "fabs" -> "addf" [ label = "0.571" ];
+    "fabs" -> "constant" [ label = "0.071" ];
+    "fabs" -> "field_access" [ label = "0.286" ];
+    "fabs" -> "get_value" [ label = "0.071" ];
+
+    "field" -> "field" [ label = "0.748" ];
+    "field" -> "multi_stage" [ label = "0.252" ];
+
+    "field_access" -> "addf" [ label = "0.016" ];
+    "field_access" -> "constant" [ label = "0.026" ];
+    "field_access" -> "divf" [ label = "0.001" ];
+    "field_access" -> "mulf" [ label = "0.031" ];
+    "field_access" -> "subf" [ label = "0.005" ];
+    "field_access" -> "field_access" [ label = "0.257" ];
+    "field_access" -> "get_value" [ label = "0.633" ];
+    "field_access" -> "var_access" [ label = "0.010" ];
+    "field_access" -> "write" [ label = "0.020" ];
+
+    "get_value" -> "addf" [ label = "0.094" ];
+    "get_value" -> "cmpf" [ label = "0.019" ];
+    "get_value" -> "constant" [ label = "0.012" ];
+    "get_value" -> "divf" [ label = "0.025" ];
+    "get_value" -> "mulf" [ label = "0.301" ];
+    "get_value" -> "subf" [ label = "0.125" ];
+    "get_value" -> "fabs" [ label = "0.006" ];
+    "get_value" -> "field_access" [ label = "0.083" ];
+    "get_value" -> "get_value" [ label = "0.268" ];
+    "get_value" -> "write" [ label = "0.067" ];
+
+    "pow" -> "var_access" [ label = "0.500" ];
+    "pow" -> "write" [ label = "0.500" ];
+
+    "sqrtf" -> "mulf" [ label = "0.200" ];
+    "sqrtf" -> "subf" [ label = "0.400" ];
+    "sqrtf" -> "get_value" [ label = "0.400" ];
+
+
+    "var_access" -> "get_value" [ label = "0.098" ];
+    "var_access" -> "write" [ label = "0.902" ];
+
+    "write" -> "loop.if" [ label = "0.004" ];
+    "write" -> "loop.terminator" [ label = "0.016" ];
+    "write" -> "addf" [ label = "0.003" ];
+    "write" -> "cmpf" [ label = "0.012" ];
+    "write" -> "constant" [ label = "0.063" ];
+    "write" -> "divf" [ label = "0.003" ];
+    "write" -> "mulf" [ label = "0.022" ];
+    "write" -> "subf" [ label = "0.003" ];
+    "write" -> "_do_method_end" [ label = "0.071" ];
+    "write" -> "field_access" [ label = "0.544" ];
+    "write" -> "get_value" [ label = "0.198" ];
+    "write" -> "var_access" [ label = "0.050" ];
+    "write" -> "write" [ label = "0.012" ];
+  }
+}
